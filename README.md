@@ -2,7 +2,7 @@ Peercoin CE Development Repo
 ==================================
 
 ### What is Peercoin (PPC)?
-[Peercoin](http://peercoin.net/) (abbreviated PPC), also known as is the first [cryptocurrency](https://en.wikipedia.org/wiki/Cryptocurrency) design to pioneer a hybrid [proof-of-stake consensus](http://peercoin.net/bin/peercoin-paper.pdf)  [proof-of-stake](http://peercoin.net/bin/peercoin-paper.pdf)/[proof-of-work](https://en.wikipedia.org/wiki/Proof-of-work_system) minting system. Peercoin is based on [Bitcoin](http://bitcoin.org/en/), and introduces many important innovations to cryptocurrency field including new security model, energy efficiency, better minting model and more adaptive response to rapid changes in network computation power.
+[Peercoin](http://peercoin.net/) (abbreviated PPC), is the first [cryptocurrency](https://en.wikipedia.org/wiki/Cryptocurrency) design to pioneer a hybrid [proof-of-stake consensus](http://peercoin.net/bin/peercoin-paper.pdf)  [proof-of-stake](http://peercoin.net/bin/peercoin-paper.pdf)/[proof-of-work](https://en.wikipedia.org/wiki/Proof-of-work_system) minting system. Peercoin is based on [Bitcoin](http://bitcoin.org/en/), and introduces many important innovations to cryptocurrency field including new security model, energy efficiency, better minting model and more adaptive response to rapid changes in network computation power.
 
 Peercoin-CE exists to further develop and improve the the Wallet UX of Peercoin in order to foster and encourage wider adoption.
 
