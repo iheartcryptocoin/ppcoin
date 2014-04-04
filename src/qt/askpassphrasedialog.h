@@ -19,6 +19,8 @@ public:
     enum Mode {
         Encrypt,    /**< Ask passphrase twice and encrypt */
         Unlock,     /**< Ask passphrase and unlock */
+		UnlockMint,     /**< Ask passphrase and unlock to mint */
+		StopUnlockMint, /**< lock and stop minting */
         ChangePass, /**< Ask old passphrase + new passphrase twice */
         Decrypt     /**< Ask passphrase and decrypt wallet */
     };
@@ -35,7 +37,8 @@ private:
     Mode mode;
     WalletModel *model;
     bool fCapsLock;
-
+signals:
+    void mintStatusChanged(bool, qint64);
 private slots:
     void textChanged();
     bool event(QEvent *event);

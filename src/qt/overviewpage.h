@@ -25,8 +25,9 @@ public:
     void setModel(WalletModel *model);
 
 public slots:
-    void setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance);
-    void setNumTransactions(int count);
+void setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBalance);
+void setNumTransactions(int count);
+void setMintOverviewPage(bool mintingState, qint64 mintingReserveValue);
 
 signals:
     void transactionClicked(const QModelIndex &index);
@@ -37,7 +38,7 @@ private:
     qint64 currentBalance;
     qint64 currentStake;
     qint64 currentUnconfirmedBalance;
-
+    qint64 mintingReserveValue;
     TxViewDelegate *txdelegate;
 
 private slots:

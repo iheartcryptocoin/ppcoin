@@ -141,6 +141,8 @@ void OverviewPage::setBalance(qint64 balance, qint64 stake, qint64 unconfirmedBa
     ui->labelBalance->setText(BitcoinUnits::formatWithUnit(unit, balance));
     ui->labelStake->setText(BitcoinUnits::formatWithUnit(unit, stake));
     ui->labelUnconfirmed->setText(BitcoinUnits::formatWithUnit(unit, unconfirmedBalance));
+    ui->labelUnconfirmed->setText(BitcoinUnits::formatWithUnit(unit, unconfirmedBalance));
+	
 }
 
 void OverviewPage::setNumTransactions(int count)
@@ -148,9 +150,17 @@ void OverviewPage::setNumTransactions(int count)
     ui->labelNumTransactions->setText(QLocale::system().toString(count));
 }
 
+void OverviewPage::setMintOverviewPage(bool mintingState, qint64 mintingReserveValue)
+{    
+    int unit = model->getOptionsModel()->getDisplayUnit();
+	ui->label_minting_status_text->setText(mintingState ? tr("Currently Minting") : tr("Not Minting"));
+	ui->label_minting_status_icon->setPixmap(mintingState ? QIcon(":/icons/minting_on").pixmap(OVERVIEW_MINT_ICONSIZE, OVERVIEW_MINT_ICONSIZE) : QIcon(":/icons/minting_off").pixmap(OVERVIEW_MINT_ICONSIZE, OVERVIEW_MINT_ICONSIZE));
+	ui->label_minting_reserve->setText(BitcoinUnits::formatWithUnit(unit, mintingReserveValue));
+}
 void OverviewPage::setModel(WalletModel *model)
 {
     this->model = model;
+
     if(model)
     {
         // Set up transaction list
@@ -165,11 +175,14 @@ void OverviewPage::setModel(WalletModel *model)
         ui->listTransactions->setModelColumn(TransactionTableModel::ToAddress);
 
         // Keep up to date with wallet
-        setBalance(model->getBalance(), model->getStake(), model->getUnconfirmedBalance());
-        connect(model, SIGNAL(balanceChanged(qint64, qint64, qint64)), this, SLOT(setBalance(qint64, qint64, qint64)));
+		setBalance(model->getBalance(), model->getStake(), model->getUnconfirmedBalance());
+		connect(model, SIGNAL(balanceChanged(qint64, qint64, qint64)), this, SLOT(setBalance(qint64, qint64, qint64)));
 
         setNumTransactions(model->getNumTransactions());
         connect(model, SIGNAL(numTransactionsChanged(int)), this, SLOT(setNumTransactions(int)));
+
+		setMintOverviewPage(model->getMintUnlockedbool(), model->getCoinStakeReserveValue());
+		connect(model, SIGNAL(mintStatusChanged(bool, qint64)), this, SLOT(setMintOverviewPage(bool, qint64)));
 
         connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(displayUnitChanged()));
     }
@@ -180,7 +193,7 @@ void OverviewPage::displayUnitChanged()
     if(!model || !model->getOptionsModel())
         return;
     if(currentBalance != -1)
-        setBalance(currentBalance, currentStake, currentUnconfirmedBalance);
+		setBalance(currentBalance, currentStake, currentUnconfirmedBalance);
 
     txdelegate->unit = model->getOptionsModel()->getDisplayUnit();
     ui->listTransactions->update();

@@ -2456,6 +2456,14 @@ static string strMintWarning;
 
 string GetWarnings(string strFor)
 {
+	/*if (is_minting)//minting bool passed as true
+	{
+		strMintWarning = "Wallet is Actively Minting";
+	}
+	if (!is_minting)//minting bool passed as true
+	{
+		strMintWarning = "Minting suspended due to locked wallet.";
+	}*/
     int nPriority = 0;
     string strStatusBar;
     string strRPC;
@@ -2466,7 +2474,7 @@ string GetWarnings(string strFor)
     if (strMintWarning != "")
     {
         nPriority = 0;
-        strStatusBar = strMintWarning;
+        //strStatusBar = strMintWarning;
     }
 
     // Misc warnings like out of disk space and clock is wrong
@@ -2509,16 +2517,23 @@ string GetWarnings(string strFor)
             {
                 nPriority = alert.nPriority;
                 strStatusBar = alert.strStatusBar;
-                if (nPriority > 1000)
-                    strRPC = strStatusBar;  // ppcoin: safe mode for high alert
+				if (nPriority > 1000)
+				{
+					strRPC = strStatusBar;  // ppcoin: safe mode for high alert
+				}
+
             }
         }
     }
 
-    if (strFor == "statusbar")
-        return strStatusBar;
-    else if (strFor == "rpc")
-        return strRPC;
+	if (strFor == "statusbar")
+	{
+		return strStatusBar;
+	}
+	else if (strFor == "rpc")
+	{
+		return strRPC;
+	}
     assert(!"GetWarnings() : invalid parameter");
     return "error";
 }

@@ -69,6 +69,7 @@ private:
     QLabel *labelEncryptionIcon;
     QLabel *labelConnectionsIcon;
     QLabel *labelBlocksIcon;
+	QLabel *labelMintingIcon;
     QLabel *progressBarLabel;
     QProgressBar *progressBar;
 
@@ -85,6 +86,8 @@ private:
     QAction *toggleHideAction;
     QAction *exportAction;
     QAction *encryptWalletAction;
+	QAction *startMintingAction;
+	QAction *stopMintingAction;
     QAction *backupWalletAction;
     QAction *changePassphraseAction;
     QAction *aboutQtAction;
@@ -160,13 +163,22 @@ private slots:
     void incomingTransaction(const QModelIndex & parent, int start, int end);
     /** Encrypt the wallet */
     void encryptWallet(bool status);
+	/** Unlock wallet and start Minting wallet */
+	void startMinting(bool status);
+	/** Lock wallet and stop Minting wallet */
+	void stopMinting(bool status);
     /** Backup the wallet */
     void backupWallet();
     /** Change encrypted wallet passphrase */
     void changePassphrase();
     /** Ask for pass phrase to unlock wallet temporarily */
     void unlockWallet();
-
+	/** Ask for pass phrase to unlock wallet for minting */
+	void unlockWalletforMinting();
+	/** Warn User that minting is on and must be disabled to continue with chosen action */
+	void warnWalletMinting();
+	/** Warn User that minting turned off to prepare for password change */
+	void WalletMintingStopped();
     /** Show window if hidden, unminimize when minimized */
     void showNormalIfMinimized();
     /** Hide window if visible, show if hidden */

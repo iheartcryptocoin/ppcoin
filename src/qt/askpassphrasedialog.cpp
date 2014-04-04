@@ -3,10 +3,11 @@
 
 #include "guiconstants.h"
 #include "walletmodel.h"
-
+#include "wallet.h"
 #include <QMessageBox>
 #include <QPushButton>
 #include <QKeyEvent>
+
 
 AskPassphraseDialog::AskPassphraseDialog(Mode mode, QWidget *parent) :
     QDialog(parent),
@@ -19,11 +20,12 @@ AskPassphraseDialog::AskPassphraseDialog(Mode mode, QWidget *parent) :
     ui->passEdit1->setMaxLength(MAX_PASSPHRASE_SIZE);
     ui->passEdit2->setMaxLength(MAX_PASSPHRASE_SIZE);
     ui->passEdit3->setMaxLength(MAX_PASSPHRASE_SIZE);
-    
+	ui->qtReserveEdit4->setMaxLength(MAX_PASSPHRASE_SIZE);
     // Setup Caps Lock detection.
     ui->passEdit1->installEventFilter(this);
     ui->passEdit2->installEventFilter(this);
     ui->passEdit3->installEventFilter(this);
+	ui->qtReserveEdit4->installEventFilter(this);
     ui->capsLabel->clear();
 
     switch(mode)
@@ -31,7 +33,9 @@ AskPassphraseDialog::AskPassphraseDialog(Mode mode, QWidget *parent) :
         case Encrypt: // Ask passphrase x2
             ui->passLabel1->hide();
             ui->passEdit1->hide();
-            ui->warningLabel->setText(tr("Enter the new passphrase to the wallet.<br/>Please use a passphrase of <b>10 or more random characters</b>, or <b>eight or more words</b>."));
+			ui->qtReserveEdit4->hide();
+			ui->qtReserveLabel4->hide();
+            ui->warningLabel->setText(tr("Enter the new passphrase to the wallet.<br/>Please use a passphrase of <b>12 or more random characters</b>, or <b>eight or more words</b>. DO NOT lose this pass phrase"));
             setWindowTitle(tr("Encrypt wallet"));
             break;
         case Unlock: // Ask passphrase
@@ -40,26 +44,53 @@ AskPassphraseDialog::AskPassphraseDialog(Mode mode, QWidget *parent) :
             ui->passEdit2->hide();
             ui->passLabel3->hide();
             ui->passEdit3->hide();
+			ui->qtReserveEdit4->hide();
+			ui->qtReserveLabel4->hide();
             setWindowTitle(tr("Unlock wallet"));
             break;
+            case UnlockMint: // Ask passphrase
+			ui->warningLabel->setText(tr("Enter wallet passphrase to begin minting. Reserve Balance is optional."));
+			ui->passLabel2->hide();
+			ui->passEdit2->hide();
+			ui->passLabel3->hide();
+			ui->passEdit3->hide();
+			setWindowTitle(tr("Begin minting"));
+	   break;
+	   case StopUnlockMint: // No passphrase
+			ui->warningLabel->setText(tr("Stop Minting?"));
+			ui->passLabel1->hide();
+			ui->passEdit1->hide();
+			ui->passLabel2->hide();
+			ui->passEdit2->hide();
+			ui->passLabel3->hide();
+			ui->passEdit3->hide();
+			ui->qtReserveEdit4->hide();
+			ui->qtReserveLabel4->hide();
+			setWindowTitle(tr("Stop Minting?"));
+	break;
         case Decrypt:   // Ask passphrase
-            ui->warningLabel->setText(tr("This operation needs your wallet passphrase to decrypt the wallet."));
+            ui->warningLabel->setText(tr("Decrypt operation needs your wallet passphrase to decrypt the wallet."));
             ui->passLabel2->hide();
             ui->passEdit2->hide();
             ui->passLabel3->hide();
             ui->passEdit3->hide();
+	    ui->qtReserveEdit4->hide();
+	    ui->qtReserveLabel4->hide();
             setWindowTitle(tr("Decrypt wallet"));
-            break;
+        break;
         case ChangePass: // Ask old passphrase + new passphrase x2
             setWindowTitle(tr("Change passphrase"));
             ui->warningLabel->setText(tr("Enter the old and new passphrase to the wallet."));
-            break;
+	    ui->qtReserveEdit4->hide();
+	    ui->qtReserveLabel4->hide();
+  	break;
     }
 
     textChanged();
     connect(ui->passEdit1, SIGNAL(textChanged(QString)), this, SLOT(textChanged()));
     connect(ui->passEdit2, SIGNAL(textChanged(QString)), this, SLOT(textChanged()));
     connect(ui->passEdit3, SIGNAL(textChanged(QString)), this, SLOT(textChanged()));
+    connect(ui->qtReserveEdit4, SIGNAL(textChanged(QString)), this, SLOT(textChanged()));
 }
 
 AskPassphraseDialog::~AskPassphraseDialog()
@@ -68,7 +99,8 @@ AskPassphraseDialog::~AskPassphraseDialog()
     ui->passEdit1->setText(QString(" ").repeated(ui->passEdit1->text().size()));
     ui->passEdit2->setText(QString(" ").repeated(ui->passEdit2->text().size()));
     ui->passEdit3->setText(QString(" ").repeated(ui->passEdit3->text().size()));
-    delete ui;
+    ui->qtReserveEdit4->setText(QString(" ").repeated(ui->qtReserveEdit4->text().size()));
+	delete ui;
 }
 
 void AskPassphraseDialog::setModel(WalletModel *model)
@@ -78,17 +110,19 @@ void AskPassphraseDialog::setModel(WalletModel *model)
 
 void AskPassphraseDialog::accept()
 {
-    SecureString oldpass, newpass1, newpass2;
+    SecureString oldpass, newpass1, newpass2, qtreserve;
     if(!model)
         return;
     oldpass.reserve(MAX_PASSPHRASE_SIZE);
     newpass1.reserve(MAX_PASSPHRASE_SIZE);
     newpass2.reserve(MAX_PASSPHRASE_SIZE);
+	qtreserve.reserve(MAX_PASSPHRASE_SIZE);
     // TODO: get rid of this .c_str() by implementing SecureString::operator=(std::string)
     // Alternately, find a way to make this input mlock()'d to begin with.
     oldpass.assign(ui->passEdit1->text().toStdString().c_str());
     newpass1.assign(ui->passEdit2->text().toStdString().c_str());
     newpass2.assign(ui->passEdit3->text().toStdString().c_str());
+	qtreserve.assign(ui->qtReserveEdit4->text().toStdString().c_str());
 
     switch(mode)
     {
@@ -99,7 +133,7 @@ void AskPassphraseDialog::accept()
             break;
         }
         QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm wallet encryption"),
-                 tr("WARNING: If you encrypt your wallet and lose your passphrase, you will <b>LOSE ALL OF YOUR PPCOINS</b>!\nAre you sure you wish to encrypt your wallet?"),
+                 tr("WARNING: Passphrases <b>cannot be recovered.</b> If you encrypt your wallet and lose your passphrase, you will <b>LOSE ALL OF YOUR COINS</b>!\nAre you sure you wish to encrypt your wallet?"),
                  QMessageBox::Yes|QMessageBox::Cancel,
                  QMessageBox::Cancel);
         if(retval == QMessageBox::Yes)
@@ -109,7 +143,7 @@ void AskPassphraseDialog::accept()
                 if(model->setWalletEncrypted(true, newpass1))
                 {
                     QMessageBox::warning(this, tr("Wallet encrypted"),
-                                         tr("PPCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your ppcoins from being stolen by malware infecting your computer."));
+                                         tr("Peercoin will close now to finish the encryption process. Remember that encrypting your wallet will not fully protect your peercoins from being stolen by malware infecting your computer."));
                     QApplication::quit();
                 }
                 else
@@ -134,13 +168,39 @@ void AskPassphraseDialog::accept()
         if(!model->setWalletLocked(false, oldpass))
         {
             QMessageBox::critical(this, tr("Wallet unlock failed"),
-                                  tr("The passphrase entered for the wallet decryption was incorrect."));
+                                  tr("The passphrase entered for the wallet was incorrect."));
         }
         else
         {
             QDialog::accept(); // Success
         }
         break;
+	case UnlockMint:
+		if (!model->setWalletLocked(false, oldpass))
+		{
+			QMessageBox::critical(this, tr("Cannot begin Minting"),
+				tr("The passphrase entered for the wallet was incorrect."));
+		}
+		else
+		{
+			model->setCoinStakeReserveValue(0);//default reserve to 0
+			if (!qtreserve.empty())//some value was typed in qtreserve if not empty
+			{
+				model->setCoinStakeReserveValue(atoi(qtreserve.c_str())); //convert string to int
+			}
+			model->setMintUnlockedbool(true); //unlocked only for minting
+
+			QDialog::accept(); // Success
+		}
+		break;
+	case StopUnlockMint:
+		//user already clicked yes before this step, stop minting and lock wallet and Qaccept
+	    model->setMintUnlockedbool(false); //locked only no minting
+		model->setWalletLocked(true, oldpass); //lockthe wallet to stop minting
+		model->setCoinStakeReserveValue(-1);//reset coinstake reserve to default -1
+
+		QDialog::accept();
+	break;
     case Decrypt:
         if(!model->setWalletEncrypted(false, oldpass))
         {
@@ -156,8 +216,11 @@ void AskPassphraseDialog::accept()
         if(newpass1 == newpass2)
         {
             if(model->changePassphrase(oldpass, newpass1))
-            {
-                QMessageBox::information(this, tr("Wallet encrypted"),
+            {//this if statement automatically locks wallet before attempt, therefore stop minting
+             model->setCoinStakeReserveValue(-1);//reset coinstake reserve to default -1
+             model->setMintUnlockedbool(false); //locked therefore no minting
+
+             QMessageBox::information(this, tr("Wallet encrypted"),
                                      tr("Wallet passphrase was succesfully changed."));
                 QDialog::accept(); // Success
             }
@@ -185,13 +248,23 @@ void AskPassphraseDialog::textChanged()
     case Encrypt: // New passphrase x2
         acceptable = !ui->passEdit2->text().isEmpty() && !ui->passEdit3->text().isEmpty();
         break;
-    case Unlock: // Old passphrase x1
-    case Decrypt:
+	case Unlock: // Old passphrase x1
+		acceptable = !ui->passEdit1->text().isEmpty();
+		break;
+	case UnlockMint: // Old passphrase x1 optional, reserve balance
+		acceptable = !ui->passEdit1->text().isEmpty();
+		break;
+	case StopUnlockMint://lock wallet nothing required
+		acceptable = true;
+		break;
+	case Decrypt:
         acceptable = !ui->passEdit1->text().isEmpty();
         break;
     case ChangePass: // Old passphrase x1, new passphrase x2
         acceptable = !ui->passEdit1->text().isEmpty() && !ui->passEdit2->text().isEmpty() && !ui->passEdit3->text().isEmpty();
         break;
+
+
     }
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(acceptable);
 }

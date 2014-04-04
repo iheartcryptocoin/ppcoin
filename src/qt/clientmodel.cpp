@@ -40,7 +40,7 @@ void ClientModel::update()
 {
     int newNumConnections = getNumConnections();
     int newNumBlocks = getNumBlocks();
-    QString newStatusBar = getStatusBarWarnings();
+	QString newStatusBar = getStatusBarWarnings();
 
     if(cachedNumConnections != newNumConnections)
         emit numConnectionsChanged(newNumConnections);
@@ -76,7 +76,7 @@ int ClientModel::getNumBlocksOfPeers() const
 
 QString ClientModel::getStatusBarWarnings() const
 {
-    return QString::fromStdString(GetWarnings("statusbar"));
+	return QString::fromStdString(GetWarnings("statusbar"));
 }
 
 OptionsModel *ClientModel::getOptionsModel()

@@ -42,7 +42,8 @@ public:
     {
         Unencrypted,  // !wallet->IsCrypted()
         Locked,       // wallet->IsCrypted() && wallet->IsLocked()
-        Unlocked      // wallet->IsCrypted() && !wallet->IsLocked()
+        Unlocked,      // wallet->IsCrypted() && !wallet->IsLocked()
+		//UnlockedMint      // wallet->IsCrypted() && !wallet->IsLocked()
     };
 
     OptionsModel *getOptionsModel();
@@ -81,7 +82,14 @@ public:
     // Wallet backup
     bool backupWallet(const QString &filename);
 
-    // RAI object for unlocking wallet, returned by requestUnlock()
+	//set unlockedminting only bool
+	void setMintUnlockedbool(bool setmintstatus); //record bool that tracks if wallet only unlocked for minting
+	bool getMintUnlockedbool(); //return bool if wallet is set to minting  
+	//set and get coinstake reserve values
+	void setCoinStakeReserveValue(qint64 reserveval);
+	qint64 getCoinStakeReserveValue();
+	
+	// RAI object for unlocking wallet, returned by requestUnlock()
     class UnlockContext
     {
     public:
@@ -118,6 +126,8 @@ private:
     qint64 cachedUnconfirmedBalance;
     qint64 cachedNumTransactions;
     EncryptionStatus cachedEncryptionStatus;
+    bool cachedMintStatus;
+    qint64 cachedReserveBalance;
 
 signals:
     // Signal that balance in wallet changed
@@ -129,10 +139,19 @@ signals:
     // Encryption status of wallet changed
     void encryptionStatusChanged(int status);
 
+    // Mint status of wallet changed
+    void mintStatusChanged(bool status, qint64 reservedBalance);
+
     // Signal emitted when wallet needs to be unlocked
     // It is valid behaviour for listeners to keep the wallet locked after this signal;
     // this means that the unlocking failed or was cancelled.
     void requireUnlock();
+
+	//Signals emitted when wallet is minting and needs to be unlocked for another action
+	void warnMinting();
+	//Signals that minting has been stopped to allow action
+	void MintingStopped();
+
 
     // Asynchronous error notification
     void error(const QString &title, const QString &message, bool modal);
