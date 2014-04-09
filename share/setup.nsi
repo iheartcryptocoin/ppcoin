@@ -45,7 +45,7 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile ppcoin-0.4.0rc1-win32-setup.exe
+OutFile ppcoin-0.4.0-win32-setup.exe
 InstallDir $PROGRAMFILES\PPCoin
 CRCCheck on
 XPStyle on
